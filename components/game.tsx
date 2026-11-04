@@ -1,9 +1,15 @@
 "use client"
 
-import { useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { gameMarkup } from './game-markup'
+
+// The game script owns these DOM nodes. Dialog state must never replace them
+// with the initial, empty HTML after the script has populated the puzzle.
+const GameBoard = memo(function GameBoard() {
+  return <div dangerouslySetInnerHTML={{__html: gameMarkup}} />
+})
 
 export function Game() {
   const [popup, setPopup] = useState<{html: string; title: string} | null>(null)
@@ -27,7 +33,7 @@ export function Game() {
     return () => { window.removeEventListener('crux:modal', open); script.remove() }
   }, [])
   return <>
-    <div dangerouslySetInnerHTML={{__html: gameMarkup}} />
+    <GameBoard />
     <Dialog open={popup !== null} onOpenChange={open => { if (!open) setPopup(null) }}>
       <DialogContent className="crux-dialog" aria-describedby={undefined}
         onCloseAutoFocus={event => {event.preventDefault(); opener.current?.focus()}}>

@@ -10,6 +10,12 @@ $('#guess-form').addEventListener('submit',async e=>{e.preventDefault();if(day!=
 function modal(html){window.dispatchEvent(new CustomEvent('crux:modal',{detail:html}))}
 $('#help').onclick=()=>modal('<div class="eyebrow">WELCOME TO THE WALL</div><h2>How to play</h2><ol><li>Read the definition and guess the climbing term.</li><li>You have unlimited attempts. Every new, non-empty guess counts; repeated guesses don’t.</li><li>Capitalization, spaces and punctuation don’t matter.</li><li>Finish in fewer attempts to climb the daily leaderboard. Equal scores share a rank.</li></ol><p>Everyone gets the same clue. A new puzzle arrives at midnight in New York, including daylight saving time.</p><p>Guest progress stays on this device. Sign in before playing for a verified leaderboard score.</p>');
 async function login(){
+ if(connectionStatus!=='ready'){
+  const buttons=[$('#login'),$('#board-login')];buttons.forEach(button=>button.disabled=true);
+  try{await connectAccounts()}finally{buttons.forEach(button=>button.disabled=false)}
+ }
+ if(connectionStatus==='error'){modal('<h2>Connection unavailable</h2><p>We could not reach accounts. Close this window and click Log in to retry.</p><p>Your guest progress is still saved on this browser.</p>');return}
+
  if(user){modal('<h2>Your climbing account</h2><p>Your ranked attempts are saved across devices.</p><button class="primary" id="logout">Log out</button><p id="auth-error" role="status"></p>');$('#logout').onclick=async()=>{try{await accounts.signOut();location.reload()}catch(e){$('#auth-error').textContent=e.message}};return}
  if(!cloud){modal('<div class="eyebrow">YOUR NEXT SEND</div><h2>Climb now. Connect soon.</h2><p>Guest play is ready. Accounts and shared rankings will open once the site is connected.</p><p>Your guest attempts are saved on this browser.</p>');return}
  modal('<h2>Join the climb.</h2><p>Sign in to save your daily attempts and join the leaderboard.</p><form id="auth-form"><label for="account-name">Display name (new accounts)</label><input id="account-name" maxlength="40" autocomplete="nickname"><label for="account-email">Email</label><input id="account-email" type="email" required autocomplete="email"><label for="account-password">Password</label><input id="account-password" type="password" required minlength="10" maxlength="128" autocomplete="current-password"><button class="primary" type="submit">Sign in</button><button class="primary" type="button" id="signup">Create account</button></form>'+(cloud.google?'<button class="primary" id="google">Continue with Google</button>':'')+'<p id="auth-error" role="status"></p>');
@@ -21,4 +27,25 @@ async function syncProgress(){busy=true;render();try{const result=await cloud.pr
 async function loadBoard(){const el=$('#leaderboard');if(cloud){try{const result=await cloud.leaderboard({});el.replaceChildren();const scores=result.data.scores;let rank=0,last=-1;scores.forEach((s,i)=>{if(s.attempts!==last)rank=i+1;last=s.attempts;const row=document.createElement('div');row.className='score-row';for(const [cls,text] of [['rank',String(rank).padStart(2,'0')],['name',s.name],['score',s.attempts+' '+(s.attempts===1?'try':'tries')]]){const span=document.createElement('span');span.className=cls;span.textContent=text;row.append(span)}el.append(row)});if(!scores.length)el.innerHTML='<div class="empty"><span>⚑</span><h3>A fresh wall.</h3><p>No finishes yet.<br>Be the first to top out.</p></div>';$('#board-note').textContent=user?'Verified sends. Equal scores share a rank.':'Log in before playing to join the board.';return}catch{el.innerHTML='<div class="empty"><h3>Taking a breather.</h3><p>The leaderboard is unavailable.<br>Try again shortly.</p></div>';return}}if(state.solved){el.innerHTML='<div class="score-row"><span class="rank">—</span><span class="name">You · guest</span><span class="score"></span></div><div class="local-label">Your result on this device</div>';el.querySelector('.score').textContent=state.guesses.length+' '+(state.guesses.length===1?'try':'tries')}else el.innerHTML='<div class="empty"><span>⚑</span><h3>Your first ascent.</h3><p>Solve today’s clue to<br>see your result here.</p></div>';$('#board-note').textContent='Shared rankings will open when accounts are connected.'}
 $('#share').onclick=async()=>{const result='CRUX #'+puzzle.number+' · '+day+'\n'+state.guesses.length+' '+(state.guesses.length===1?'attempt':'attempts')+' · Topped out! 🟩\n'+location.origin;try{await navigator.clipboard.writeText(result);$('#share').textContent='Copied ✓'}catch{modal('<h2>Your result</h2><p id="share-text"></p>');$('#share-text').textContent=result}};
 state=read();render();tick();setInterval(tick,1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden){tick();loadBoard()}});window.addEventListener('storage',e=>{if(e.key==='crux:'+day&&!user){state=read();render();loadBoard()}});loadBoard();
-try{const config=await accounts.getConfig();if(config.configured){cloud={google:config.google,guess:async body=>({data:await accounts.request('/api/guess',body)}),progress:async()=>({data:await accounts.request('/api/progress')}),leaderboard:async()=>({data:await accounts.request('/api/leaderboard')})};const session=await accounts.getSession();user=session?.user||null;$('#login').textContent=user?'My account ↗':'Log in ↗';$('#board-login').textContent=user?'My account ↗':'Join the climb ↗';if(user)await syncProgress();loadBoard()}}catch{$('#board-note').textContent='Accounts are temporarily unavailable. Guest play is available.'}
+let connectionStatus='loading',connectionRequest=null;
+function connectAccounts(){
+ if(connectionRequest)return connectionRequest;
+ connectionStatus='loading';
+ connectionRequest=(async()=>{
+  try{
+   const config=await accounts.getConfig();
+   if(!config.configured){cloud=null;connectionStatus='unconfigured';return}
+   const session=await accounts.getSession();
+   cloud={google:config.google,guess:async body=>({data:await accounts.request('/api/guess',body)}),progress:async()=>({data:await accounts.request('/api/progress')}),leaderboard:async()=>({data:await accounts.request('/api/leaderboard')})};
+   user=session?.user||null;
+   connectionStatus='ready';
+   $('#login').textContent=user?'My account ↗':'Log in ↗';
+   $('#board-login').textContent=user?'My account ↗':'Join the climb ↗';
+   if(user)await syncProgress();
+   await loadBoard();
+  }catch{connectionStatus='error';$('#board-note').textContent='Accounts are temporarily unavailable. Click Log in to retry.'}
+  finally{connectionRequest=null}
+ })();
+ return connectionRequest;
+}
+void connectAccounts();
