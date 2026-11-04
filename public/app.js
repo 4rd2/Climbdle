@@ -1,5 +1,6 @@
 import {dayKey,puzzleFor,isCorrect,normalize} from './puzzles.js';
 import * as accounts from './accounts.js';
+import {showSignIn,showUsernameSetup} from './auth-dialogs.js';
 const $=s=>document.querySelector(s);let day=dayKey(),puzzle=puzzleFor(day),state,cloud=null,user=null,busy=false;
 function read(){try{return JSON.parse(localStorage.getItem('crux:'+day))||{guesses:[],solved:false}}catch{return {guesses:[],solved:false}}}
 function save(){try{localStorage.setItem('crux:'+day,JSON.stringify(state))}catch{$('#message').textContent='Your browser could not save progress. Keep this tab open.'}}
@@ -16,11 +17,10 @@ async function login(){
  }
  if(connectionStatus==='error'){modal('<h2>Connection unavailable</h2><p>We could not reach accounts. Close this window and click Log in to retry.</p><p>Your guest progress is still saved on this browser.</p>');return}
 
+ if(user&&!user.username){showUsernameSetup(modal);return}
  if(user){modal('<h2>Your climbing account</h2><p>Your ranked attempts are saved across devices.</p><button class="primary" id="logout">Log out</button><p id="auth-error" role="status"></p>');$('#logout').onclick=async()=>{try{await accounts.signOut();location.reload()}catch(e){$('#auth-error').textContent=e.message}};return}
  if(!cloud){modal('<div class="eyebrow">YOUR NEXT SEND</div><h2>Climb now. Connect soon.</h2><p>Guest play is ready. Accounts and shared rankings will open once the site is connected.</p><p>Your guest attempts are saved on this browser.</p>');return}
- modal('<h2>Join the climb.</h2><p>Sign in to save your daily attempts and join the leaderboard.</p><form id="auth-form"><label for="account-name">Display name (new accounts)</label><input id="account-name" maxlength="40" autocomplete="nickname"><label for="account-email">Email</label><input id="account-email" type="email" required autocomplete="email"><label for="account-password">Password</label><input id="account-password" type="password" required minlength="10" maxlength="128" autocomplete="current-password"><button class="primary" type="submit">Sign in</button><button class="primary" type="button" id="signup">Create account</button></form>'+(cloud.google?'<button class="primary" id="google">Continue with Google</button>':'')+'<p id="auth-error" role="status"></p>');
- const submit=async(newAccount)=>{const f=$('#auth-form');if(!f.reportValidity())return;const name=$('#account-name').value.trim();if(newAccount&&!name){$('#auth-error').textContent='Choose a display name.';return}const buttons=$('#modal-content').querySelectorAll('button');buttons.forEach(b=>b.disabled=true);try{if(newAccount)await accounts.signUp(name,$('#account-email').value,$('#account-password').value);else await accounts.signIn($('#account-email').value,$('#account-password').value);location.reload()}catch(e){$('#auth-error').textContent=e.message;buttons.forEach(b=>b.disabled=false)}};
- $('#auth-form').onsubmit=e=>{e.preventDefault();submit(false)};$('#signup').onclick=()=>submit(true);if(cloud.google)$('#google').onclick=async()=>{try{const result=await accounts.googleSignIn();if(result.url)location.assign(result.url)}catch(e){$('#auth-error').textContent=e.message}};
+ showSignIn(modal,cloud.google);
 }
 $('#login').onclick=login;$('#board-login').onclick=login;
 async function syncProgress(){busy=true;render();try{const result=await cloud.progress({});if(result.data.day===day){state=result.data.state;render()}}catch{$('#message').textContent='Account progress is unavailable. Please retry once you’re connected.'}finally{busy=false;render()}}

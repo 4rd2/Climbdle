@@ -31,3 +31,9 @@ Use Node 22.13 or later. Run `npm ci`, `npm test`, and `npm run dev`. Run `npm r
 Live Neon and Better Auth flows cannot be verified until a database and secrets are configured.
 
 References: https://better-auth.com/docs/installation and https://neon.com/docs/serverless/serverless-driver
+
+## Username sign-in
+
+Login uses a unique, case-insensitive username and password. New accounts choose a username (3–30 letters, numbers, or underscores) and still supply an email during registration. Existing users select “Already have an account without a username?”, sign in with their original email and password, and choose a username. Their user ID and game progress are retained.
+
+Before deploying username support, run `node scripts/migrate-neon.mjs` with `DATABASE_URL` configured. This applies `drizzle-auth/0001_username.sql`, adding nullable username fields and a unique index without changing existing passwords. Do not deploy the username plugin before this migration has succeeded.
