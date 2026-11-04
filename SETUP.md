@@ -1,4 +1,4 @@
-# CRUX: Neon + Better Auth
+# Climbdle: Neon + Better Auth
 
 Firebase has been removed. The site now has a server, Better Auth session-cookie authentication, and Neon PostgreSQL storage. Guest play works without configuration. Daily rollover is midnight America/New_York, including daylight saving time.
 

@@ -19,7 +19,7 @@ export function Game() {
       const template = document.createElement('template')
       template.innerHTML = (event as CustomEvent<string>).detail
       const heading = template.content.querySelector('h2')
-      const title = heading?.textContent || 'CRUX'
+      const title = heading?.textContent || 'Climbdle'
       heading?.remove()
       opener.current = document.activeElement as HTMLElement
       // Existing game handlers bind to the form immediately after opening it.
