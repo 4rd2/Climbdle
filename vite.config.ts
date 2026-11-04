@@ -18,6 +18,9 @@ const managedLinux = readExecutionProfile() === "managed-linux";
 const localBindingConfig = {
   main: "./worker/index.ts",
   compatibility_flags: ["nodejs_compat"],
+  vars: {
+    BETTER_AUTH_URL: "https://climble.rutherford-medley.workers.dev/",
+  },
   d1_databases: d1
     ? [
         {
