@@ -3,3 +3,34 @@
 
 #auth-form{padding:0}#auth-form label{margin-top:14px}#auth-form button{margin-top:14px}#signup{background:transparent;color:var(--ink);border:1px solid var(--line)}#google{margin-top:14px}
 .crux-dialog{background:var(--paper);color:var(--ink);border-color:var(--line);border-radius:10px;padding:36px;width:calc(100% - 32px);max-width:440px;max-height:calc(100dvh - 32px);overflow-y:auto;gap:12px}.crux-dialog [data-slot=dialog-title]{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:500;line-height:1.2;padding-right:20px}.crux-dialog p,.crux-dialog li{font-size:14px;line-height:1.8}.crux-dialog p{margin:12px 0}.crux-dialog ol{list-style:decimal;padding-left:24px}.crux-dialog form{padding:8px 0 0}.crux-dialog input{margin-bottom:16px}.crux-dialog .primary{width:100%;padding:14px;background:var(--green);color:white;border:0;border-radius:4px;margin-top:10px}.crux-dialog [data-slot=dialog-close]{color:var(--ink)}[data-slot=dialog-overlay]{background:#17271e77;backdrop-filter:blur(3px)}
+
+/* Start, puzzle, and leaderboard views share persistent game state. */
+[hidden]{display:none!important}
+header{max-width:1200px;height:92px;padding:0 32px}
+nav{align-items:center;gap:24px}
+nav button[aria-current=page]{text-decoration:underline;text-underline-offset:8px;text-decoration-color:var(--orange);text-decoration-thickness:2px}
+.app-main{display:block;max-width:1200px;margin:0 auto;padding:0 24px;min-height:calc(100svh - 174px)}
+.start-screen{min-height:calc(100svh - 174px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:56px 0 72px}
+.start-mark{display:grid;place-items:center;width:88px;height:88px;border:1px solid #b8c3ad;background:#e9eddf;border-radius:22px;font-size:64px;line-height:1;color:var(--green);margin-bottom:24px}
+.start-screen h1{font-size:76px;letter-spacing:-5px;font-weight:700;margin:0 0 20px;line-height:1}
+.start-description{font-size:22px;line-height:1.5;color:var(--ink);margin:0;max-width:420px}
+.start-actions{display:flex;gap:12px;width:100%;max-width:360px;margin-top:32px}
+.start-primary,.start-secondary{display:flex;align-items:center;justify-content:center;gap:22px;min-height:50px;padding:13px 26px;border-radius:6px;font-size:15px;font-weight:600;text-decoration:none}
+.start-primary{background:var(--green);color:white;border:1px solid var(--green)}
+.start-secondary{background:transparent;color:var(--ink);border:1px solid #9da998}
+.start-actions>*{flex:1}
+.start-date{margin-top:30px;font-size:12px;color:var(--muted)}
+.puzzle-screen{max-width:580px;margin:0 auto;padding:48px 0}
+.puzzle-screen .game{width:100%}
+.puzzle-screen .reset{align-items:center;text-align:center;border:0;margin-top:28px;padding-top:0;gap:7px}
+.puzzle-screen .reset strong{font-size:22px}
+.leaderboard-screen{max-width:580px;margin:0 auto;padding:48px 0}
+.leaderboard-heading h1{font-size:36px;letter-spacing:-1.5px;line-height:1.15;margin:0 0 12px}
+.leaderboard-heading p{font-size:14px;color:var(--muted);margin-bottom:28px}
+.leaderboard-screen .board-sub{font-size:10px}
+.leaderboard-screen #board-note{margin-top:20px;font-size:12px}
+.leaderboard-screen #board-login{font-size:13px;justify-content:center;min-height:46px}
+.leaderboard-screen #board-play{width:100%;margin-top:12px}
+.site-footer{max-width:1136px;min-height:82px;margin:0 auto;padding:24px 0;align-items:center;border-top:1px solid var(--line);font-size:10px;letter-spacing:.4px;gap:16px}
+.site-footer a{color:var(--ink);text-decoration:none;font-weight:600;white-space:nowrap}
+@media(max-width:680px){header{height:auto;min-height:110px;padding:18px 20px;flex-wrap:wrap;gap:16px}.logo{font-size:26px}.mark{font-size:34px}nav{width:100%;justify-content:space-between;gap:8px}nav button{font-size:12px;min-height:36px}nav .login{padding:8px 14px}.app-main{min-height:calc(100svh - 198px);padding:0 20px}.start-screen{min-height:calc(100svh - 198px);padding:40px 0 48px}.start-screen h1{font-size:64px}.start-mark{width:72px;height:72px;font-size:54px;border-radius:18px}.start-description{font-size:19px}.puzzle-screen,.leaderboard-screen{padding:28px 0}.leaderboard-heading h1{font-size:30px}.site-footer{margin:0 20px;font-size:9px}.start-actions{max-width:340px}}
