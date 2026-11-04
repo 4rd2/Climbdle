@@ -16,14 +16,11 @@ export function statsError() {
   $('#stats-screen').setAttribute('aria-busy', 'false');
 }
 
-export function renderStats(stats, signedIn) {
+export function renderStats(stats) {
   $('#stats-screen').setAttribute('aria-busy', 'false');
   $('#stats-status').textContent = '';
   $('#stats-retry').hidden = true;
   $('#stats-content').hidden = false;
-  $('#stats-source').textContent = signedIn
-    ? 'All completed puzzles on your account, across devices. Guest games are separate.'
-    : 'Completed guest puzzles saved in this browser. Account games are separate.';
   $('#stats-solved').textContent = String(stats.solved);
   $('#stats-average').textContent = stats.average === null ? '—' : stats.average.toFixed(2);
   $('#stats-empty').hidden = stats.solved > 0;

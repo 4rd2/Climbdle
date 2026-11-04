@@ -19,7 +19,7 @@ function bindSubmit(action) {
 }
 
 export function showUsernameSetup(modal) {
-  modal('<h2>Choose your username</h2><p>Your existing account and progress stay with you. Choose a unique username for future logins.</p><form id="auth-form">'+usernameField+'<button class="primary" type="submit">Save username</button></form><p id="auth-error" role="status"></p>');
+  modal('<h2>Choose your username</h2><form id="auth-form">'+usernameField+'<button class="primary" type="submit">Save username</button></form><p id="auth-error" role="status"></p>');
   bindSubmit(async () => {
     await accounts.setUsername($('#account-username').value.trim());
     location.reload();
@@ -29,7 +29,7 @@ export function showUsernameSetup(modal) {
 export function showSignIn(modal, google = false, mode = 'login') {
   const signup = mode === 'signup';
   const legacy = mode === 'legacy';
-  const title = signup ? 'Join the climb.' : legacy ? 'Connect your existing account' : 'Welcome back.';
+  const title = signup ? 'Create account' : legacy ? 'Email login' : 'Log in';
   const intro = legacy ? '<p>Sign in with your original email once, then choose a username.</p>' : '';
   modal('<h2>'+title+'</h2>'+intro+'<form id="auth-form">'+
     (legacy ? emailField : signup ? usernameField+emailField : '<label for="account-username">Username</label><input id="account-username" required autocomplete="username" autocapitalize="none" spellcheck="false">')+

@@ -62,3 +62,9 @@ nav button[aria-current=page]{text-decoration:underline;text-underline-offset:8p
 .stats-empty button{margin:0 auto}
 #stats-status:not(:empty){font-size:14px;line-height:1.7;padding:24px 0}
 @media(max-width:680px){.stats-screen{padding:28px 0}.stats-heading h1{font-size:30px}.stats-summary strong{font-size:36px}.histogram-row{gap:8px}nav{gap:6px}nav button{font-size:11px}nav .login{padding:8px 10px}}
+
+/* Keep headings and results compact after removing explanatory copy. */
+#board-note:empty{display:none}
+.stats-heading,.leaderboard-heading{margin-bottom:24px}
+.stats-summary{margin-bottom:28px}
+.attempt-bar[hidden]+#history{margin-top:16px}
