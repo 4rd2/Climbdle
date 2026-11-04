@@ -37,3 +37,7 @@ References: https://better-auth.com/docs/installation and https://neon.com/docs/
 Login uses a unique, case-insensitive username and password. New accounts choose a username (3–30 letters, numbers, or underscores) and still supply an email during registration. Existing users select “Already have an account without a username?”, sign in with their original email and password, and choose a username. Their user ID and game progress are retained.
 
 Before deploying username support, run `node scripts/migrate-neon.mjs` with `DATABASE_URL` configured. This applies `drizzle-auth/0001_username.sql`, adding nullable username fields and a unique index without changing existing passwords. Do not deploy the username plugin before this migration has succeeded.
+
+## Personal stats
+
+The Stats navbar view shows completed-puzzle totals, average attempts, and an attempt histogram (1–10 and 11+). The average uses exact attempt counts, including long solves; unfinished puzzles are excluded. Signed-in stats come from the authenticated user's existing `crux_runs` records through `GET /api/stats`. Guest stats use historical daily saves in this browser. These histories remain separate, and no database migration is required for stats.

@@ -1,6 +1,7 @@
 import {neon} from '@neondatabase/serverless';
 import {createAuth,isConfigured} from '../../../lib/auth';
 import {dayKey,puzzleFor,isCorrect,normalize} from '../../../public/puzzles.js';
+import {summarizeDistribution} from '../../../public/stats.js';
 export const dynamic='force-dynamic';
 const json=(data:unknown,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'no-store'}});
 async function handle(req:Request){
@@ -17,6 +18,9 @@ async function handle(req:Request){
  return json({day,scores});}
  const session=await auth.api.getSession({headers:req.headers});
  if(!session)return json({error:'Please sign in.'},401);
+ if(path==='/api/stats'&&req.method==='GET'){
+ const distribution=await sql`SELECT jsonb_array_length(guesses) AS attempts, count(*)::int AS count FROM crux_runs WHERE user_id=${session.user.id} AND solved=true GROUP BY jsonb_array_length(guesses) ORDER BY attempts`;
+ return json(summarizeDistribution(distribution));}
  if(path==='/api/progress'&&req.method==='GET'){
  const rows=await sql`SELECT guesses,solved FROM crux_runs WHERE user_id=${session.user.id} AND day=${day}`;
  return json({day,state:rows[0]||{guesses:[],solved:false}});}
