@@ -3,15 +3,41 @@ import * as accounts from './accounts.js';
 import {showSignIn,showUsernameSetup} from './auth-dialogs.js';
 import {summarizeDistribution,guestDistribution} from './stats.js';
 import {statsLoading,statsError,renderStats} from './stats-view.js';
+import {canRevealHint,hintKey,HINT_AFTER_ATTEMPTS} from './hints.js';
+const revealedHints=new Set();
 const $=s=>document.querySelector(s);let day=dayKey(),puzzle=puzzleFor(day),state,cloud=null,user=null,busy=false;
 function read(){try{return JSON.parse(localStorage.getItem('crux:'+day))||{guesses:[],solved:false}}catch{return {guesses:[],solved:false}}}
 function save(){try{localStorage.setItem('crux:'+day,JSON.stringify(state))}catch{$('#message').textContent='Your browser could not save progress. Keep this tab open.'}}
-function render(){ const yesterday=new Date(Date.parse(day+'T00:00:00Z')-86400000).toISOString().slice(0,10);$('#yesterday-answer').textContent=puzzleFor(yesterday).answer; $('#puzzle-number').textContent='#'+String(puzzle.number).padStart(3,'0');$('#category').textContent=puzzle.category;$('#clue').textContent=puzzle.clue;$('#attempts').textContent=state.guesses.length;$('#attempt-label').textContent=state.guesses.length===1?'attempt':'attempts';$('.attempt-bar').hidden=state.solved;$('#guess').disabled=state.solved||busy;$('#submit').disabled=state.solved||busy;$('#share').hidden=!state.solved;$('#history').replaceChildren();state.guesses.slice().reverse().forEach((g,i)=>{const li=document.createElement('li');const correct=state.solved&&i===0;li.className=correct?'correct':'';const name=document.createElement('span');name.textContent=String(state.guesses.length-i).padStart(2,'0')+'  '+g;const mark=document.createElement('span');mark.textContent=correct?'Correct':'Incorrect';li.append(name,mark);$('#history').append(li)});if(state.solved)$('#message').textContent='Solved in '+state.guesses.length+' '+(state.guesses.length===1?'attempt.':'attempts.');}
+function render(){ renderHint(); const yesterday=new Date(Date.parse(day+'T00:00:00Z')-86400000).toISOString().slice(0,10);$('#yesterday-answer').textContent=puzzleFor(yesterday).answer; $('#puzzle-number').textContent='#'+String(puzzle.number).padStart(3,'0');$('#category').textContent=puzzle.category;$('#clue').textContent=puzzle.clue;$('#attempts').textContent=state.guesses.length;$('#attempt-label').textContent=state.guesses.length===1?'attempt':'attempts';$('.attempt-bar').hidden=state.solved;$('#guess').disabled=state.solved||busy;$('#submit').disabled=state.solved||busy;$('#share').hidden=!state.solved;$('#history').replaceChildren();state.guesses.slice().reverse().forEach((g,i)=>{const li=document.createElement('li');const correct=state.solved&&i===0;li.className=correct?'correct':'';const name=document.createElement('span');name.textContent=String(state.guesses.length-i).padStart(2,'0')+'  '+g;const mark=document.createElement('span');mark.textContent=correct?'Correct':'Incorrect';li.append(name,mark);$('#history').append(li)});if(state.solved)$('#message').textContent='Solved in '+state.guesses.length+' '+(state.guesses.length===1?'attempt.':'attempts.');}
 function resetDay(){day=dayKey();puzzle=puzzleFor(day);state=read();$('#message').textContent='';$('#guess').value='';render();loadBoard();if(user)syncProgress()}
 function tick(){if(day!==dayKey()){resetDay()}let low=Date.now(),high=low+27*3600000;while(high-low>1000){const mid=Math.floor((low+high)/2);if(dayKey(new Date(mid))===day)low=mid;else high=mid}let seconds=Math.max(0,Math.ceil((high-Date.now())/1000));$('#countdown').textContent=[Math.floor(seconds/3600),Math.floor(seconds%3600/60),seconds%60].map(v=>String(v).padStart(2,'0')).join(':')}
 $('#guess-form').addEventListener('submit',async e=>{e.preventDefault();if(day!==dayKey()){resetDay();$('#message').textContent='New puzzle available. Read the clue before guessing.';return}if(busy||state.solved)return;const guess=$('#guess').value.trim();if(!normalize(guess))return;if(state.guesses.some(g=>normalize(g)===normalize(guess))){$('#message').textContent='Already guessed.';return}busy=true;render();try{if(user&&cloud){const result=await cloud.guess({guess});if(result.data.day!==day){resetDay();return}state=result.data.state}else{state.guesses.push(guess);state.solved=isCorrect(guess,puzzle.answer)}if(!user)save();$('#guess').value='';$('#message').textContent=state.solved?'':'Incorrect. Try again.';await loadBoard()}catch(e){$('#message').textContent='Could not record your guess. Please check your connection and try again.'}finally{busy=false;render();if(location.hash==='#stats')void loadStats();if(!state.solved)$('#guess').focus()}});
 function modal(html){window.dispatchEvent(new CustomEvent('crux:modal',{detail:html}))}
-$('#help').onclick=()=>modal('<h2>How to play</h2><ol><li>Read the definition and guess the climbing term.</li><li>You have unlimited attempts. Every new, non-empty guess counts; repeated guesses don’t.</li><li>Capitalization, spaces and punctuation don’t matter.</li><li>The leaderboard ranks players by fewest attempts.</li></ol><p>Everyone gets the same clue. A new puzzle arrives at midnight in New York, including daylight saving time.</p><p>Guest progress stays on this device. Log in before playing to save your score.</p>');
+function renderHint(){
+ const key=hintKey(day,user?.id);
+ let revealed=revealedHints.has(key);
+ try{revealed=localStorage.getItem(key)==='1'||revealed}catch{}
+ // A stored reveal never bypasses the attempt requirement for this run.
+ revealed=revealed&&state.guesses.length>=HINT_AFTER_ATTEMPTS;
+ const button=$('#hint-button');
+ button.hidden=revealed||state.solved;
+ button.disabled=busy||!canRevealHint(state);
+ button.textContent=canRevealHint(state)?'Get hint':'Hint after 3 attempts';
+ button.setAttribute('aria-expanded',String(revealed));
+ $('#puzzle-hint').hidden=!revealed;
+ $('#hint-text').textContent=revealed?puzzle.hint:'';
+}
+$('#hint-button').onclick=()=>{
+ if(day!==dayKey()){resetDay();return}
+ if(busy||!canRevealHint(state))return;
+ const key=hintKey(day,user?.id);
+ revealedHints.add(key);
+ try{localStorage.setItem(key,'1')}catch{}
+ renderHint();
+ $('#hint-title').setAttribute('tabindex','-1');
+ $('#hint-title').focus();
+};
+$('#help').onclick=()=>modal('<h2>How to play</h2><ol><li>Read the definition and guess the climbing term.</li><li>You have unlimited attempts. Every new, non-empty guess counts; repeated guesses don’t.</li><li>Capitalization, spaces and punctuation don’t matter.</li><li>After 3 incorrect guesses, get a hint with a fuller definition. Hints don’t use an attempt.</li><li>The leaderboard ranks players by fewest attempts.</li></ol><p>Everyone gets the same clue. A new puzzle arrives at midnight in New York, including daylight saving time.</p><p>Guest progress stays on this device. Log in before playing to save your score.</p>');
 async function login(){
  if(connectionStatus!=='ready'){
   const buttons=[$('#login'),$('#board-login'),$('#start-login')];buttons.forEach(button=>button.disabled=true);

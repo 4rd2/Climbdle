@@ -1,5 +1,28 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';import {dayKey,puzzleFor,isCorrect} from './public/puzzles.js';
 import {summarizeDistribution,guestDistribution} from './public/stats.js';
+import {canRevealHint,hintKey} from './public/hints.js';
+
+test('Hints unlock after three unsuccessful attempts, never on a solved run',()=>{
+ for(const guesses of [[],['wrong'],['wrong','also wrong']])assert.equal(canRevealHint({guesses,solved:false}),false);
+ assert.equal(canRevealHint({guesses:['a','b','c'],solved:false}),true);
+ assert.equal(canRevealHint({guesses:['a','b','c','d'],solved:false}),true);
+ assert.equal(canRevealHint({guesses:['a','b','answer'],solved:true}),false);
+});
+test('Every daily puzzle has a shorter initial clue and a fuller hint',()=>{
+ for(let offset=0;offset<31;offset++){
+  const day=new Date(Date.UTC(2026,10,2+offset)).toISOString().slice(0,10);
+  const puzzle=puzzleFor(day);
+  assert.ok(puzzle.clue.length>0);
+  assert.ok(puzzle.hint.length>puzzle.clue.length, puzzle.answer);
+  assert.notEqual(puzzle.clue,puzzle.hint);
+ }
+ assert.equal(puzzleFor('2026-11-04').answer,'jug');
+ assert.equal(puzzleFor('2026-11-04').hint,'A large, positive handhold that is easy to wrap your fingers around.');
+});
+test('Hint reveals stay separate between dates, guests, and accounts',()=>{
+ const keys=[hintKey('2026-11-04'),hintKey('2026-11-05'),hintKey('2026-11-04','user-a'),hintKey('2026-11-04','user-b')];
+ assert.equal(new Set(keys).size,4);
+});
 
 test('Stats have no average before the first solve',()=>{
  const stats=summarizeDistribution([]);

@@ -41,3 +41,7 @@ Before deploying username support, run `node scripts/migrate-neon.mjs` with `DAT
 ## Personal stats
 
 The Stats navbar view shows completed-puzzle totals, average attempts, and an attempt histogram (1–10 and 11+). The average uses exact attempt counts, including long solves; unfinished puzzles are excluded. Signed-in stats come from the authenticated user's existing `crux_runs` records through `GET /api/stats`. Guest stats use historical daily saves in this browser. These histories remain separate, and no database migration is required for stats.
+
+## Daily hints
+
+Each puzzle starts with a short clue. After three distinct incorrect guesses, **Get hint** reveals its fuller definition without adding an attempt. Hint visibility is remembered in the browser for that date and guest/account identity, and resets with the New York daily puzzle. Existing daily answers and saved scores are unchanged.
