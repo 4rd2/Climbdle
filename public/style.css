@@ -72,3 +72,9 @@ nav button[aria-current=page]{text-decoration:underline;text-underline-offset:8p
 .attempt-bar[hidden]+#history{margin-top:16px}
 .yesterday-answer{margin:28px 0 0;padding-top:22px;border-top:1px solid var(--line);text-align:center;font-size:13px;color:var(--muted)}.yesterday-answer strong{color:var(--ink);font-weight:600}
 .hint-area{margin-top:20px}#hint-button{border:1px solid #a6b49b;background:transparent;color:var(--ink);border-radius:4px;padding:9px 12px;font-size:12px;min-height:38px}#hint-button:disabled{opacity:.65}#puzzle-hint{border-top:1px solid #cbd2c2;padding-top:16px}#hint-title{font-size:12px;font-weight:700;margin:0 0 8px}#hint-text{font-size:14px;line-height:1.65;margin:0;color:var(--ink)}
+
+.clue-area.solved{background:var(--green);color:var(--paper)}
+.clue-area.solved .category{border-color:#a6b49b}
+.clue-area.solved .clue-footer{color:#d9ddd1}
+.clue-area.solved #puzzle-hint{border-color:#a6b49b}
+.clue-area.solved #hint-text{color:var(--paper)}
